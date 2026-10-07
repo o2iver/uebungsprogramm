@@ -63,6 +63,10 @@ body{background:var(--papier);color:var(--tinte);font:16px/1.5 var(--text);-webk
 .google summary{cursor:pointer;color:var(--gruen);font-weight:600;font-size:15px}
 .google p{font-size:14px;margin:8px 0 10px}
 .privat{font-size:13px;color:var(--stumm);margin:14px 0 0;padding:9px 11px;background:var(--papier);border-radius:6px}
+.iphone{background:#FDF3E1;border-left:4px solid var(--signal);border-radius:6px;padding:10px 12px;
+  margin:0 0 12px;font-size:14.5px}
+.iphone ol{margin:6px 0 0;padding-left:20px}
+.iphone li{margin:3px 0}
 
 .notiz{border-left:4px solid var(--signal)}
 .notiz p{margin:0;white-space:pre-line}
@@ -707,10 +711,12 @@ function texte(sie) {
   return sie ? {
     programm: "Ihr Übungsprogramm",
     kalenderInfo: "Tragen Sie sich die Übungszeiten in den Kalender Ihres Handys ein. Jeder Termin enthält einen Link zurück zu dieser Seite.",
-    hilfeIos: "Das iPhone fragt danach noch einmal nach – bestätigen Sie mit „Hinzufügen“ bzw. „Alle hinzufügen“.",
-    hilfeIosNotfall: "Passiert nichts? Dann ",
-    hilfeIosLink: "tippen Sie hier",
-    hilfeIosSafari: ". Bei Problemen öffnen Sie den Link bitte in Safari.",
+    iphone: [
+      "Öffnen Sie diese Seite in Safari: in WhatsApp lange auf den Link drücken und „In Safari öffnen“ wählen – oder den Link kopieren und in Safari einfügen.",
+      "Tippen Sie in Safari auf den grünen Knopf.",
+      "Fragt Safari nach, wählen Sie „Anzeigen“ – nicht „Laden“.",
+      "Tippen Sie dann auf „Alle hinzufügen“."
+    ],
     hilfeAndroid: "Bei Samsung- und anderen Kalender-Apps genügt der grüne Knopf. Mit dem Google Kalender geht es über die Knöpfe darunter.",
     hilfeSonst: "Die Kalenderdatei wird heruntergeladen. Öffnen Sie sie, dann übernimmt Ihr Kalender die Termine.",
     googleFrage: "Sie nutzen den Google Kalender?",
@@ -721,10 +727,12 @@ function texte(sie) {
   } : {
     programm: "Dein Übungsprogramm",
     kalenderInfo: "Trag dir die Übungszeiten in den Kalender deines Handys ein. Jeder Termin enthält einen Link zurück zu dieser Seite.",
-    hilfeIos: "Das iPhone fragt danach noch einmal nach – bestätige mit „Hinzufügen“ bzw. „Alle hinzufügen“.",
-    hilfeIosNotfall: "Passiert nichts? Dann ",
-    hilfeIosLink: "tippe hier",
-    hilfeIosSafari: ". Bei Problemen öffne den Link bitte in Safari.",
+    iphone: [
+      "Öffne diese Seite in Safari: in WhatsApp lange auf den Link drücken und „In Safari öffnen“ wählen – oder den Link kopieren und in Safari einfügen.",
+      "Tippe in Safari auf den grünen Knopf.",
+      "Fragt Safari nach, wähle „Anzeigen“ – nicht „Laden“.",
+      "Tippe dann auf „Alle hinzufügen“."
+    ],
     hilfeAndroid: "Bei Samsung- und anderen Kalender-Apps genügt der grüne Knopf. Mit dem Google Kalender geht es über die Knöpfe darunter.",
     hilfeSonst: "Die Kalenderdatei wird heruntergeladen. Öffne sie, dann übernimmt dein Kalender die Termine.",
     googleFrage: "Du nutzt den Google Kalender?",
@@ -807,10 +815,12 @@ function zeigePlan(plan) {
       target="_blank" rel="noopener">${SERIEN.length > 1 ? "Termin " + (i + 1) + ": " : ""}${esc(
       einheitName(plan.einheiten[s.einheit], s.einheit))} · ${esc(s.zeitText)}</a>`).join("");
 
-  let hilfe;
-  if (IOS) hilfe = `${esc(T.hilfeIos)} ${esc(T.hilfeIosNotfall)}<a href="#" id="b-ics-alt">${esc(T.hilfeIosLink)}</a>${esc(T.hilfeIosSafari)}`;
-  else if (ANDROID) hilfe = esc(T.hilfeAndroid);
-  else hilfe = esc(T.hilfeSonst);
+  // iPhone: Der Kalender übernimmt die Datei nur aus Safari, nicht aus dem
+  // WhatsApp-Browser (Handytest Olli 07.10.2026). Welcher Browser es ist, lässt
+  // sich nicht erkennen - deshalb die Anleitung für alle iPhones, vor dem Knopf.
+  const iphone = IOS ? `<div class="iphone"><b>So klappt es auf dem iPhone:</b><ol>${
+    T.iphone.map(s => `<li>${esc(s)}</li>`).join("")}</ol></div>` : "";
+  const hilfe = IOS ? "" : `<p class="hilfe">${esc(ANDROID ? T.hilfeAndroid : T.hilfeSonst)}</p>`;
 
   const adl = plan.einheiten.some(e => e.uebungen.some(u => u.id && u.id.indexOf("ADL-") === 0));
 
@@ -835,8 +845,9 @@ function zeigePlan(plan) {
       <ul class="zeitplan">${zeitplan}</ul>
       <div class="nur-bildschirm">
         <p class="hilfe" style="margin:0 0 12px">${esc(T.kalenderInfo)}</p>
+        ${iphone}
         <button class="knopf" id="b-ics" type="button">In meinen Kalender eintragen</button>
-        <p class="hilfe">${hilfe}</p>
+        ${hilfe}
         <details class="google" ${ANDROID ? "open" : ""}>
           <summary>${esc(T.googleFrage)}</summary>
           <p>${esc(T.googleText)}</p>
@@ -859,11 +870,10 @@ function zeigePlan(plan) {
 
   $("#b-ics").addEventListener("click", kalenderDatei);
   $("#b-druck").addEventListener("click", () => window.print());
-  const alt = $("#b-ics-alt");
-  if (alt) alt.addEventListener("click", ev => { ev.preventDefault(); kalenderDatenLink(); });
 }
 
-// Standardweg: Kalenderdatei herunterladen bzw. öffnen
+// Kalenderdatei herunterladen bzw. öffnen. Android: Kalender fragt direkt.
+// iPhone: nur in Safari, dort „Anzeigen“ → „Alle hinzufügen“.
 function kalenderDatei() {
   const erg = buildPlanICS(SERIEN);
   const url = URL.createObjectURL(new Blob([erg.ics], { type: "text/calendar;charset=utf-8" }));
@@ -871,11 +881,6 @@ function kalenderDatei() {
   a.href = url; a.download = erg.dateiname;
   document.body.appendChild(a); a.click();
   setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 4000);
-}
-
-// Zweiter Weg fürs iPhone: Safari zeigt Kalenderdaten direkt zum Hinzufügen an
-function kalenderDatenLink() {
-  location.href = "data:text/calendar;charset=utf-8," + encodeURIComponent(buildPlanICS(SERIEN).ics);
 }
 
 window.addEventListener("hashchange", zeige);
