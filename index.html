@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<meta name="format-detection" content="telephone=no">
+<meta name="theme-color" content="#0E4D3F">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>Übungsprogramm – O.G. Physiotherapie</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%230E4D3F'/%3E%3Crect x='7' y='22' width='18' height='3' rx='1.5' fill='%23E8A33D'/%3E%3C/svg%3E">
+<!--
+  Patientenseite für den Planversand. GENERIERT aus plan_template.html durch
+  build.py - nicht von Hand ändern. Der Plan steckt im Link hinter dem "#"
+  und wird nirgends gespeichert. Die Seite lädt nichts von fremden Servern.
+-->
+<style>
+:root{
+  --papier:#F1F4F0; --tinte:#16211C; --gruen:#0E4D3F; --gruen-hell:#1A6E5C; --gruen-zart:#E3EEE9;
+  --signal:#E8A33D; --stumm:#55665E; --rand:#D3DBD5;
+  --display:'Avenir Next Condensed','Helvetica Neue Condensed','Arial Narrow','Roboto Condensed',sans-serif-condensed,sans-serif;
+  --text:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+  --daten:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  color-scheme:light;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--papier);color:var(--tinte);font:16px/1.5 var(--text);-webkit-text-size-adjust:100%;
+  overflow-wrap:break-word}
+:focus-visible{outline:3px solid var(--signal);outline-offset:2px}
+.huelle{max-width:640px;margin:0 auto;padding:0 16px 32px}
+
+/* ---------- Kopf ---------- */
+.kopf{background:var(--gruen);color:#fff;margin:0 -16px 18px;padding:22px 16px 20px;
+  border-bottom:4px solid var(--signal)}
+.marke{font:11px/1.3 var(--daten);letter-spacing:.14em;text-transform:uppercase;opacity:.8;margin-bottom:8px}
+.kopf h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,8.4vw,36px);line-height:1.02;
+  text-transform:uppercase;margin:0;-webkit-hyphens:auto;hyphens:auto;overflow-wrap:anywhere}
+.plantitel{font-size:19px;font-weight:600;margin:10px 0 0}
+.zeitraum{font-size:14.5px;opacity:.88;margin:3px 0 0}
+
+/* ---------- Karten ---------- */
+.karte{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:16px;margin-bottom:14px}
+.karte h2,.einheit-kopf h2{font:700 11px/1.3 var(--daten);letter-spacing:.12em;text-transform:uppercase;
+  color:var(--stumm);margin:0 0 10px}
+.zeitplan{list-style:none;margin:0 0 14px;padding:0}
+.zeitplan li{display:flex;gap:10px;align-items:baseline;padding:7px 0;border-bottom:1px solid var(--rand)}
+.zeitplan li:last-child{border-bottom:0}
+.zeitplan .marker{flex:none;width:9px;height:9px;border-radius:50%;background:var(--signal);transform:translateY(-1px)}
+.zeitplan b{font-weight:650}
+.leise{color:var(--stumm)}
+
+.knopf{display:block;width:100%;background:var(--gruen);color:#fff;border:0;border-radius:8px;
+  padding:15px 12px;font:700 19px/1.2 var(--display);text-transform:uppercase;letter-spacing:.04em;
+  cursor:pointer;text-align:center;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.knopf:active{background:var(--gruen-hell)}
+.knopf.zweit{background:#fff;color:var(--gruen);border:1.5px solid var(--gruen);font-size:16px;padding:12px}
+.knopf + .knopf{margin-top:8px}
+.hilfe{font-size:14px;color:var(--stumm);margin:10px 0 0}
+.hilfe a{color:var(--gruen)}
+.google{margin-top:14px;border-top:1px solid var(--rand);padding-top:12px}
+.google summary{cursor:pointer;color:var(--gruen);font-weight:600;font-size:15px}
+.google p{font-size:14px;margin:8px 0 10px}
+.privat{font-size:13px;color:var(--stumm);margin:14px 0 0;padding:9px 11px;background:var(--papier);border-radius:6px}
+
+.notiz{border-left:4px solid var(--signal)}
+.notiz p{margin:0;white-space:pre-line}
+
+/* ---------- Übungen ---------- */
+.einheit-kopf{margin:22px 0 10px}
+.einheit-kopf .zeit{font-size:14.5px;color:var(--stumm);margin:-4px 0 0}
+.einheit-kopf .titel{font:700 22px/1.1 var(--display);text-transform:uppercase;margin:0 0 6px;color:var(--gruen)}
+.ue{background:#fff;border:1px solid var(--rand);border-radius:10px;padding:14px 16px;margin-bottom:12px}
+.ue-kopf{display:flex;gap:11px;align-items:flex-start}
+.ue-nr{flex:none;width:30px;height:30px;border-radius:50%;background:var(--gruen);color:#fff;
+  display:grid;place-items:center;font:700 16px/1 var(--display)}
+.ue h3{margin:3px 0 8px;font-size:17px;line-height:1.3}
+.bilder{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:6px 0 10px}
+.bilder img{width:100%;aspect-ratio:4/3;object-fit:cover;border-radius:6px;border:1px solid var(--rand);display:block}
+.anleitung{margin:0 0 10px}
+.dosis{background:var(--gruen-zart);border-radius:6px;padding:8px 10px;font-size:15.5px}
+.dosis b{display:block;font:700 10.5px/1.6 var(--daten);letter-spacing:.11em;text-transform:uppercase;color:var(--gruen)}
+.vermeiden{font-size:14.5px;color:#46534C;margin:9px 0 0}
+.video{display:inline-block;margin-top:10px;color:var(--gruen);font-weight:600}
+.fehlt{color:#8a3b12}
+
+/* ---------- Fuß ---------- */
+.fuss{font-size:14px;color:#46534C;margin-top:22px}
+.fuss p{margin:0 0 10px}
+.fuss b{color:var(--tinte)}
+.fuss .rechtlich{font-size:12.5px;margin-top:16px}
+.fuss .rechtlich a{color:var(--stumm)}
+
+@media print{
+  @page{size:A4;margin:12mm 13mm}
+  body{background:#fff;font-size:11pt}
+  .huelle{max-width:none;padding:0}
+  .nur-bildschirm{display:none !important}
+  .kopf{background:#fff;color:var(--tinte);margin:0 0 12px;padding:0 0 8px;border-bottom:3px solid var(--gruen)}
+  .marke{color:var(--gruen);opacity:1}
+  .kopf h1{font-size:26px;color:var(--gruen)}
+  .karte,.ue{break-inside:avoid;page-break-inside:avoid;border-color:#bfc8c3;padding:8px 12px;
+    margin-bottom:8px;border-radius:6px}
+  .karte h2,.einheit-kopf h2{margin-bottom:4px}
+  .zeitplan{margin:0}
+  .zeitplan li{padding:3px 0}
+  .einheit-kopf{margin:12px 0 6px;break-after:avoid;page-break-after:avoid}
+  .einheit-kopf .titel{font-size:16pt;margin-bottom:2px}
+  .ue-nr{width:22px;height:22px;font-size:12pt}
+  .ue h3{font-size:11.5pt;margin:1px 0 4px}
+  .anleitung{margin:0 0 6px;font-size:10.5pt}
+  .dosis{padding:4px 8px;font-size:10.5pt}
+  .vermeiden{font-size:9.5pt;margin-top:4px}
+  .fuss{font-size:9.5pt;margin-top:10px}
+}
+</style>
+</head>
+<body>
+<div class="huelle">
+  <header class="kopf">
+    <div class="marke">O.G. Physiotherapie · mobile Physiotherapie</div>
+    <h1 id="ueberschrift">Übungsprogramm</h1>
+    <p class="plantitel" id="plantitel" hidden></p>
+    <p class="zeitraum" id="zeitraum" hidden></p>
+  </header>
+  <main id="inhalt"><noscript><div class="karte">Bitte JavaScript erlauben, damit das Programm angezeigt werden kann.</div></noscript></main>
+</div>
+
+<script id="daten" type="application/json">{"version":"0.3","impressum":"","datenschutz":"","uebungen":[{"id":"SCG-PTR-KRA-MUS-01","name":"Protraktion Kräftigung, Serratus-Punch","instruktion":"Streck deinen Arm nach vorne oben und schieb dann deine Faust noch ein kleines Stück weiter nach vorne, als würdest du gegen etwas boxen. Dein Schulterblatt bewegt sich dabei mit nach vorne.","dosis":"3S x 12-15W je Seite · 2 s vor, 2 s zurück · 2-3 x / Woche","kurz":"3S x 12-15W je Seite","hinweis":"Bewegung nur aus dem Ellbogen statt aus dem Schulterblatt, Ausweichen über Rumpfrotation","bilder":[],"video":""},{"id":"SCG-RTR-KRA-MUS-01","name":"Retraktion Kräftigung, Rudern im Sitz","instruktion":"Zieh deine Ellbogen gegen das Band nach hinten und bring deine Schulterblätter dabei aktiv zueinander, dann langsam wieder nach vorne.","dosis":"3S x 12-15W · 2 s zurück, 2 s vor · 2-3 x / Woche","kurz":"3S x 12-15W","hinweis":"Hochziehen der Schultern statt reiner Retraktion, Hohlkreuz, zu starkes Zusammenpressen der Schulterblätter über das normale Maß hinaus","bilder":[],"video":""},{"id":"SCH-ABD-KRA-SEH-01","name":"Isometrische Abduktion in schmerzarmem Winkel (Stufe 1 Rotatorenmanschette)","instruktion":"Drück deinen Arm gegen den Widerstand nach außen und halte die Spannung ruhig, in einer Position, die sich nicht schmerzhaft anfühlt.","dosis":"Start 3S x 30 s, schrittweise steigern bis 5S x 45 s · isometrisch, konstante Spannung · 2 x täglich, jeden Tag","kurz":"Start 3S x 30 s, schrittweise steigern bis 5S x 45 s","hinweis":"Ausführung im schmerzhaften Winkelbereich (Painful Arc) statt in einer schmerzarmen Position, Hochziehen der Schulter, zu hohe Intensität von Beginn an","bilder":[],"video":""},{"id":"SCH-AR0-KRA-SEH-02","name":"Isometrische Außenrotation gegen die Wand (Infraspinatus / hintere Rotatorenmanschette)","instruktion":"Stell dich seitlich an eine Wand. Dein Ellbogen ist gebeugt und liegt mit einem kleinen Handtuch am Körper, der Handrücken berührt die Wand. Drück die Hand nach außen gegen die Wand - dabei bewegt sich nichts. Halte die Spannung ruhig und atme weiter.","dosis":"Start 3S x 30 s, schrittweise steigern bis 5S x 45 s · isometrisch, Spannung 2-3 s langsam aufbauen, halten, langsam lösen · 2 x täglich, jeden Tag","kurz":"Start 3S x 30 s, schrittweise steigern bis 5S x 45 s","hinweis":"Ellbogen löst sich vom Körper","bilder":[],"video":""},{"id":"SCH-FLX-KRA-SEH-02","name":"Isometrische Schulterflexion gegen die Wand (lange Bizepssehne / vordere Schulter)","instruktion":"Stell dich vor eine Wand und leg die Handfläche deines gestreckten Arms schräg vor dir an die Wand, ungefähr auf Höhe deines Bauchnabels. Die Finger zeigen nach unten, der Daumen nach außen. Drück den Arm nach vorne in die Wand, als wolltest du ihn anheben - dabei bewegt sich nichts. Halte die Spannung ruhig und atme weiter. Die Schulter bleibt unten und du lehnst dich nicht mit dem Körper an.","dosis":"Start 3S x 30 s, schrittweise steigern bis 5S x 45 s · isometrisch, Spannung 2-3 s langsam aufbauen, halten, langsam lösen · 2 x täglich, jeden Tag","kurz":"Start 3S x 30 s, schrittweise steigern bis 5S x 45 s","hinweis":"Lehnen mit dem Körpergewicht in die Wand statt Druck aus der Schulter","bilder":[],"video":""}]}</script>
+<script>
+/* ics_generator_ENTWURF.js
+ *
+ * Entwurf, noch nicht in ein Tool eingebaut. Isolierte, testbare Funktion,
+ * die aus einer Übungsauswahl eine RFC-5545-konforme .ics-Datei baut -
+ * fuer einen wiederkehrenden Trainingstermin mit voller Uebungsliste im
+ * Beschreibungstext. Rein clientseitig, keine Abhaengigkeiten, kein
+ * Build-Step - laeuft per <script> im Browser und per `node` fuer die
+ * Tests (siehe ics_generator_ENTWURF.test.js).
+ *
+ * buildTrainingsplanICS (26.08.2026): ein einzelner Serientermin, bewusst
+ * ohne Link - DESCRIPTION enthaelt die komplette Anleitung als Text.
+ *
+ * buildPlanICS / googleKalenderLink (05.10.2026, Planversand): mehrere
+ * Serien je Plan (eine pro Einheit und Uhrzeit), jede mit Link zurueck zur
+ * Patientenseite - im URL-Feld (Apple) und als Klartext in der
+ * Beschreibung (Google, Outlook). Der Plan selbst steckt nur im Link,
+ * siehe planlink.js. Entscheidung Olli 04./05.10.2026.
+ */
+
+var WOCHENTAG_CODES = { MO: "MO", DI: "TU", MI: "WE", DO: "TH", FR: "FR", SA: "SA", SO: "SU" };
+
+/* ---------- Hilfsfunktionen ---------- */
+
+// RFC 5545 TEXT-Escaping: Backslash zuerst, dann Komma/Semikolon/Zeilenumbruch.
+function icsEscape(text) {
+  return String(text == null ? "" : text)
+    .replace(/\\/g, "\\\\")
+    .replace(/;/g, "\\;")
+    .replace(/,/g, "\\,")
+    .replace(/\r\n|\n|\r/g, "\\n");
+}
+
+function utf8ByteLength(ch) {
+  if (typeof TextEncoder !== "undefined") return new TextEncoder().encode(ch).length;
+  return Buffer.byteLength(ch, "utf8"); // Node-Fallback
+}
+
+// Line Folding bei > 75 Oktetten. Es wird immer ein ganzes Zeichen verschoben,
+// nie mitten in eine Mehrbyte-UTF-8-Sequenz geschnitten (RFC 5545 §3.1).
+function icsFoldLine(line) {
+  var LIMIT = 75;
+  var chars = Array.from(line); // codepoint-sicher (Umlaute, Emoji etc.)
+  var out = [];
+  var current = "";
+  var currentBytes = 0;
+  for (var i = 0; i < chars.length; i++) {
+    var ch = chars[i];
+    var chBytes = utf8ByteLength(ch);
+    if (currentBytes + chBytes > LIMIT && current.length > 0) {
+      out.push(current);
+      current = " " + ch; // Folgezeile beginnt mit genau einem Leerzeichen
+      currentBytes = 1 + chBytes;
+    } else {
+      current += ch;
+      currentBytes += chBytes;
+    }
+  }
+  out.push(current);
+  return out.join("\r\n");
+}
+
+function pad2(n) { return (n < 10 ? "0" : "") + n; }
+
+// "YYYY-MM-DD" + "HH:MM" -> "YYYYMMDDTHHMMSS" (floating local time, kein Z/TZID)
+function icsLocalDateTime(datumISO, uhrzeit) {
+  var d = datumISO.replace(/-/g, "");
+  var t = uhrzeit.replace(":", "") + "00";
+  return d + "T" + t;
+}
+
+function icsUtcStamp(date) {
+  return date.getUTCFullYear() + pad2(date.getUTCMonth() + 1) + pad2(date.getUTCDate()) +
+    "T" + pad2(date.getUTCHours()) + pad2(date.getUTCMinutes()) + pad2(date.getUTCSeconds()) + "Z";
+}
+
+// Einfacher, deterministischer String-Hash (kein Krypto-Anspruch - nur
+// stabil: gleiche Eingabe -> gleiche UID, damit ein erneuter Import
+// aktualisiert statt dupliziert).
+function stableHash(text) {
+  var h = 5381;
+  for (var i = 0; i < text.length; i++) {
+    h = ((h << 5) + h + text.charCodeAt(i)) | 0;
+  }
+  return (h >>> 0).toString(36);
+}
+
+function addMinutes(hhmm, minuten) {
+  var parts = hhmm.split(":");
+  var totalMin = parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10) + minuten;
+  totalMin = ((totalMin % 1440) + 1440) % 1440;
+  return pad2(Math.floor(totalMin / 60)) + ":" + pad2(totalMin % 60);
+}
+
+/* ---------- Hauptfunktion ---------- */
+
+/**
+ * @param {Object} plan
+ * @param {string} plan.uidNamespace   z.B. "uebungskatalog.local" oder "hsv-monitoring.local"
+ * @param {string} plan.planId         stabile Kennung fuer diesen Plan (z.B. "0007-2026-KW35")
+ * @param {string} plan.code           Pseudonym-Code, nur fuer Titel/Dateiname (z.B. "HSV-007" oder "Pat-0042")
+ * @param {string} plan.titel          Kurztitel fuer SUMMARY, z.B. "Reha Rotatorenmanschette"
+ * @param {Array}  plan.uebungen       [{name, dosierung, hinweis}], reiner Text, keine Bilder/Links
+ * @param {string} plan.startDatum     "YYYY-MM-DD" des ersten Termins
+ * @param {string} plan.uhrzeit        "HH:MM"
+ * @param {number} plan.dauerMin       Termindauer in Minuten
+ * @param {Array}  plan.wochentage     Teilmenge von ["MO","DI","MI","DO","FR","SA","SO"]
+ * @param {number} plan.anzahlWochen   Anzahl Wochen, ueber die der Plan laeuft
+ * @param {number} [plan.erinnerungMinVorher=30]
+ * @returns {{ics: string, dateiname: string}}
+ */
+function buildTrainingsplanICS(plan) {
+  if (!plan.wochentage || !plan.wochentage.length) {
+    throw new Error("Mindestens ein Wochentag erforderlich");
+  }
+  if (!plan.uebungen || !plan.uebungen.length) {
+    throw new Error("Mindestens eine Uebung erforderlich");
+  }
+
+  var erinnerung = plan.erinnerungMinVorher == null ? 30 : plan.erinnerungMinVorher;
+  var dtStart = icsLocalDateTime(plan.startDatum, plan.uhrzeit);
+  var endUhrzeit = addMinutes(plan.uhrzeit, plan.dauerMin);
+  var dtEnd = icsLocalDateTime(plan.startDatum, endUhrzeit);
+  var dtStamp = icsUtcStamp(new Date());
+
+  var byday = plan.wochentage.map(function (w) { return WOCHENTAG_CODES[w]; }).join(",");
+  // COUNT zaehlt einzelne Termine, nicht Wochen: Wochentage x Wochen (RFC-5545-Semantik von FREQ=WEEKLY + BYDAY).
+  var count = plan.wochentage.length * plan.anzahlWochen;
+
+  var uid = stableHash(plan.code + "|" + plan.planId + "|" + plan.startDatum) + "@" + plan.uidNamespace;
+
+  var beschreibung = plan.uebungen.map(function (u, i) {
+    var zeile = (i + 1) + ". " + u.name + " - " + u.dosierung;
+    if (u.hinweis) zeile += " (" + u.hinweis + ")";
+    return zeile;
+  }).join("\n");
+
+  var summary = icsEscape(plan.titel);
+  var description = icsEscape(beschreibung);
+
+  var lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Praxisbetriebssystem//Trainingsplan//DE",
+    "CALSCALE:GREGORIAN",
+    "BEGIN:VEVENT",
+    "UID:" + uid,
+    "DTSTAMP:" + dtStamp,
+    "DTSTART:" + dtStart,
+    "DTEND:" + dtEnd,
+    "RRULE:FREQ=WEEKLY;BYDAY=" + byday + ";COUNT=" + count,
+    "SUMMARY:" + summary,
+    "DESCRIPTION:" + description,
+    "BEGIN:VALARM",
+    "ACTION:DISPLAY",
+    "DESCRIPTION:" + summary,
+    "TRIGGER:-PT" + erinnerung + "M",
+    "END:VALARM",
+    "END:VEVENT",
+    "END:VCALENDAR"
+  ];
+
+  var ics = lines.map(icsFoldLine).join("\r\n") + "\r\n";
+  var dateiname = plan.code + "_" + plan.planId + ".ics";
+
+  return { ics: ics, dateiname: dateiname };
+}
+
+/* ---------- Planversand: mehrere Serien mit Link ---------- */
+
+// Wochentage als Index 0 = Montag ... 6 = Sonntag
+var RFC_TAGE = ["MO", "TU", "WE", "TH", "FR", "SA", "SU"];
+
+function datumPlusTage(datumISO, n) {
+  var t = datumISO.split("-");
+  var d = new Date(Date.UTC(+t[0], +t[1] - 1, +t[2] + n));
+  return d.getUTCFullYear() + "-" + pad2(d.getUTCMonth() + 1) + "-" + pad2(d.getUTCDate());
+}
+
+function wochentagIndex(datumISO) {
+  var t = datumISO.split("-");
+  return (new Date(Date.UTC(+t[0], +t[1] - 1, +t[2])).getUTCDay() + 6) % 7;
+}
+
+// RFC 5545: DTSTART muss selbst ein Termin der Serie sein, sonst ist das
+// Ergebnis undefiniert (Google und Apple legen dann einen Extra-Termin an).
+// Deshalb startet die Serie am ersten passenden Wochentag ab dem Startdatum.
+function ersterTermin(datumISO, tage) {
+  for (var i = 0; i < 7; i++) {
+    var d = datumPlusTage(datumISO, i);
+    if (tage.indexOf(wochentagIndex(d)) !== -1) return d;
+  }
+  throw new Error("Mindestens ein Wochentag erforderlich");
+}
+
+// Ende eines Termins, auch ueber Mitternacht hinweg
+function terminEnde(datumISO, uhrzeit, dauerMin) {
+  var p = uhrzeit.split(":");
+  var min = parseInt(p[0], 10) * 60 + parseInt(p[1], 10) + dauerMin;
+  return {
+    datum: datumPlusTage(datumISO, Math.floor(min / 1440)),
+    uhrzeit: pad2(Math.floor((min % 1440) / 60)) + ":" + pad2(min % 60)
+  };
+}
+
+function serienRegel(s) {
+  var regel = s.tage.length === 7 ? "FREQ=DAILY"
+    : "FREQ=WEEKLY;BYDAY=" + s.tage.slice().sort().map(function (t) { return RFC_TAGE[t]; }).join(",");
+  return regel + ";COUNT=" + s.anzahl;
+}
+
+function erinnerungTrigger(s) {
+  if (s.uhrzeit) {
+    var vorher = s.erinnerung || 0;
+    return vorher ? "TRIGGER:-PT" + vorher + "M" : "TRIGGER:PT0M";
+  }
+  // ganztaegig: Erinnerung zur Uhrzeit am Tag selbst, gerechnet ab 0:00
+  var hm = (s.erinnerung || "09:00").split(":");
+  var h = parseInt(hm[0], 10), m = parseInt(hm[1], 10);
+  return "TRIGGER;RELATED=START:PT" + h + "H" + (m ? m + "M" : "");
+}
+
+/**
+ * @param {Array} serien  je Serie: {
+ *   uid, sequenz, titel, beschreibung, url,
+ *   startDatum "YYYY-MM-DD" (Planstart, wird auf den ersten passenden Tag geschoben),
+ *   uhrzeit "HH:MM" oder null fuer ganztaegig, dauerMin,
+ *   tage [0..6, 0 = Montag], anzahl (Zahl der Termine),
+ *   erinnerung: mit Uhrzeit Minuten vorher (0 = zum Termin), ganztaegig "HH:MM" }
+ * @returns {{ics: string, dateiname: string}}
+ */
+function buildPlanICS(serien) {
+  if (!serien || !serien.length) throw new Error("Mindestens eine Terminserie erforderlich");
+  var dtStamp = icsUtcStamp(new Date());
+  var lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//O.G. Physiotherapie//Uebungsprogramm//DE",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH"
+  ];
+  serien.forEach(function (s) {
+    var start = ersterTermin(s.startDatum, s.tage);
+    lines.push("BEGIN:VEVENT", "UID:" + s.uid, "DTSTAMP:" + dtStamp);
+    if (s.sequenz) lines.push("SEQUENCE:" + s.sequenz);
+    if (s.uhrzeit) {
+      var ende = terminEnde(start, s.uhrzeit, s.dauerMin);
+      lines.push("DTSTART:" + icsLocalDateTime(start, s.uhrzeit),
+                 "DTEND:" + icsLocalDateTime(ende.datum, ende.uhrzeit));
+    } else {
+      lines.push("DTSTART;VALUE=DATE:" + start.replace(/-/g, ""),
+                 "DTEND;VALUE=DATE:" + datumPlusTage(start, 1).replace(/-/g, ""),
+                 "TRANSP:TRANSPARENT");
+    }
+    lines.push("RRULE:" + serienRegel(s),
+               "SUMMARY:" + icsEscape(s.titel),
+               "DESCRIPTION:" + icsEscape(s.beschreibung));
+    // URL ist vom Typ URI, nicht TEXT - deshalb kein icsEscape
+    if (s.url) lines.push("URL;VALUE=URI:" + s.url);
+    lines.push("BEGIN:VALARM", "ACTION:DISPLAY", "DESCRIPTION:" + icsEscape(s.titel),
+               erinnerungTrigger(s), "END:VALARM", "END:VEVENT");
+  });
+  lines.push("END:VCALENDAR");
+  return { ics: lines.map(icsFoldLine).join("\r\n") + "\r\n", dateiname: "Uebungsprogramm.ics" };
+}
+
+// Vorbelegter Termin fuer den Google-Kalender (eine Serie pro Link). Fuer
+// Android: Die Google-Kalender-App oeffnet .ics-Dateien nicht zuverlaessig.
+function googleKalenderLink(s) {
+  var start = ersterTermin(s.startDatum, s.tage);
+  var zeitraum;
+  if (s.uhrzeit) {
+    var ende = terminEnde(start, s.uhrzeit, s.dauerMin);
+    zeitraum = icsLocalDateTime(start, s.uhrzeit) + "/" + icsLocalDateTime(ende.datum, ende.uhrzeit);
+  } else {
+    zeitraum = start.replace(/-/g, "") + "/" + datumPlusTage(start, 1).replace(/-/g, "");
+  }
+  return "https://calendar.google.com/calendar/render?action=TEMPLATE" +
+    "&text=" + encodeURIComponent(s.titel) +
+    "&dates=" + zeitraum +
+    "&details=" + encodeURIComponent(s.beschreibung) +
+    "&recur=" + encodeURIComponent("RRULE:" + serienRegel(s));
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    buildTrainingsplanICS: buildTrainingsplanICS,
+    buildPlanICS: buildPlanICS,
+    googleKalenderLink: googleKalenderLink,
+    ersterTermin: ersterTermin,
+    terminEnde: terminEnde,
+    datumPlusTage: datumPlusTage,
+    icsEscape: icsEscape,
+    icsFoldLine: icsFoldLine,
+    stableHash: stableHash
+  };
+}
+
+/* planlink.js
+ *
+ * Plan im Link (Planversand, seit 05.10.2026). Der Uebungskatalog verpackt
+ * einen Plan in den Teil der Adresse hinter dem "#", die Patientenseite liest
+ * ihn dort wieder aus. Browser schicken diesen Teil nie an den Server - der
+ * Plan wird nirgends gespeichert. Im Link stehen nur Uebungs-IDs, Zeitplan
+ * und Abweichungen von der Katalog-Dosierung, keine Namen oder Diagnosen.
+ * Die Kodierung (base64url) macht den Link nur unleserlich, nicht geheim.
+ *
+ * Braucht ics_generator_ENTWURF.js (Datums-Helfer) - immer danach laden.
+ *
+ * Plan im Speicher:
+ *   { id, revision, titel, anrede: "du"|"sie", start: "YYYY-MM-DD", wochen, notiz,
+ *     einheiten: [ { name, tage: [0..6, 0 = Montag], zeiten: ["HH:MM"],
+ *                    ganztaegig, erinnerung: "HH:MM", dauer,
+ *                    uebungen: [ {id, dosierung, hinweis} | {name, dosierung, hinweis} ] } ] }
+ * dosierung/hinweis nur, wenn sie vom Katalog abweichen; sonst gilt der Katalog.
+ */
+
+var PLAN_PRAEFIX = "p1.";
+var PLAN_GRENZEN = { einheiten: 6, uebungen: 30, zeiten: 4, wochen: 52, titel: 60, text: 300 };
+var UEBUNGS_ID = /^[A-Z0-9]{3}-[A-Z0-9]{3}-[A-Z]{3}-[A-Z]{3}-\d{2}$/;
+var UHRZEIT = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+/* ---------- Kodierung ---------- */
+
+function base64urlKodieren(text) {
+  var bytes = new TextEncoder().encode(text), bin = "";
+  for (var i = 0; i < bytes.length; i++) bin += String.fromCharCode(bytes[i]);
+  return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+}
+
+function base64urlDekodieren(text) {
+  var s = text.replace(/-/g, "+").replace(/_/g, "/");
+  while (s.length % 4) s += "=";
+  var bin = atob(s), bytes = new Uint8Array(bin.length);
+  for (var i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+  return new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+}
+
+function tageAlsMaske(tage) {
+  var m = "";
+  for (var i = 0; i < 7; i++) m += tage.indexOf(i) !== -1 ? "1" : "0";
+  return m;
+}
+
+function maskeAlsTage(maske) {
+  var tage = [];
+  for (var i = 0; i < 7; i++) if (maske.charAt(i) === "1") tage.push(i);
+  return tage;
+}
+
+function neuePlanId() {
+  var id = "";
+  while (id.length < 8) id += Math.random().toString(36).slice(2);
+  return id.slice(0, 8);
+}
+
+// Langform -> Text hinter dem "#" (ohne "#")
+function planKodieren(plan) {
+  var kurz = {
+    i: plan.id, r: plan.revision || 1, t: plan.titel || undefined,
+    a: plan.anrede === "sie" ? "s" : "d", s: plan.start, w: plan.wochen,
+    n: plan.notiz || undefined,
+    e: plan.einheiten.map(function (e) {
+      return {
+        b: e.name || undefined,
+        d: tageAlsMaske(e.tage),
+        z: e.ganztaegig ? undefined : e.zeiten,
+        g: e.ganztaegig ? (e.erinnerung || "09:00") : undefined,
+        m: e.ganztaegig ? undefined : e.dauer,
+        u: e.uebungen.map(function (u) {
+          var k = u.id ? { i: u.id } : { f: u.name };
+          if (u.dosierung) k.o = u.dosierung;
+          if (u.hinweis) k.h = u.hinweis;
+          return k;
+        })
+      };
+    })
+  };
+  return PLAN_PRAEFIX + base64urlKodieren(JSON.stringify(kurz));
+}
+
+/* ---------- Auslesen und Pruefen ---------- */
+
+function planFehler(text) { var e = new Error(text); e.planFehler = true; return e; }
+
+function textFeld(wert, max) {
+  if (wert == null) return "";
+  if (typeof wert !== "string") throw planFehler("Der Link enthält ungültige Angaben");
+  return wert.trim().slice(0, max);
+}
+
+function gueltigesDatum(iso) {
+  if (typeof iso !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(iso)) return false;
+  return datumPlusTage(iso, 0) === iso; // faengt z. B. 2026-02-30 ab
+}
+
+// Text hinter dem "#" -> gepruefte Langform. Wirft einen Fehler mit
+// verstaendlichem Text, wenn der Link fehlt, abgeschnitten oder veraendert ist.
+function planDekodieren(hash) {
+  var text = String(hash || "").replace(/^#/, "");
+  if (!text) throw planFehler("Kein Übungsprogramm im Link");
+  if (text.indexOf(PLAN_PRAEFIX) !== 0) throw planFehler("Dieser Link enthält kein Übungsprogramm");
+  // Messenger haengen manchmal Satzzeichen an - alles ab dem ersten fremden Zeichen weg
+  var nutzlast = text.slice(PLAN_PRAEFIX.length).replace(/[^A-Za-z0-9_-][\s\S]*$/, "");
+  var kurz;
+  try { kurz = JSON.parse(base64urlDekodieren(nutzlast)); }
+  catch (e) { throw planFehler("Der Link ist unvollständig oder beschädigt"); }
+  return planPruefen(kurz);
+}
+
+function planPruefen(k) {
+  if (!k || typeof k !== "object" || Array.isArray(k)) throw planFehler("Der Link enthält kein gültiges Programm");
+  var wochen = k.w;
+  if (!gueltigesDatum(k.s)) throw planFehler("Im Link fehlt ein gültiges Startdatum");
+  if (typeof wochen !== "number" || wochen % 1 || wochen < 1 || wochen > PLAN_GRENZEN.wochen)
+    throw planFehler("Im Link fehlt eine gültige Anzahl Wochen");
+  if (!Array.isArray(k.e) || !k.e.length || k.e.length > PLAN_GRENZEN.einheiten)
+    throw planFehler("Der Link enthält keine gültigen Einheiten");
+  var id = typeof k.i === "string" && /^[a-z0-9]{4,16}$/.test(k.i) ? k.i : "p" + stableHash(JSON.stringify(k));
+  var revision = typeof k.r === "number" && k.r >= 1 && k.r % 1 === 0 ? k.r : 1;
+  var gesamt = 0;
+  var einheiten = k.e.map(function (e) {
+    if (!e || typeof e !== "object") throw planFehler("Der Link enthält keine gültigen Einheiten");
+    if (typeof e.d !== "string" || !/^[01]{7}$/.test(e.d) || e.d.indexOf("1") === -1)
+      throw planFehler("Eine Einheit hat keine gültigen Wochentage");
+    var ganz = e.g != null;
+    if (ganz && !UHRZEIT.test(e.g)) throw planFehler("Eine Einheit hat keine gültige Erinnerungszeit");
+    if (!ganz && (!Array.isArray(e.z) || !e.z.length || e.z.length > PLAN_GRENZEN.zeiten ||
+        !e.z.every(function (z) { return UHRZEIT.test(z); })))
+      throw planFehler("Eine Einheit hat keine gültige Uhrzeit");
+    var dauer = typeof e.m === "number" && e.m >= 5 && e.m <= 240 && e.m % 1 === 0 ? e.m : 15;
+    if (!Array.isArray(e.u) || !e.u.length) throw planFehler("Eine Einheit enthält keine Übungen");
+    gesamt += e.u.length;
+    if (gesamt > PLAN_GRENZEN.uebungen) throw planFehler("Der Link enthält zu viele Übungen");
+    return {
+      name: textFeld(e.b, PLAN_GRENZEN.titel),
+      tage: maskeAlsTage(e.d),
+      zeiten: ganz ? [] : e.z.filter(function (z, i) { return e.z.indexOf(z) === i; }).sort(),
+      ganztaegig: ganz,
+      erinnerung: ganz ? e.g : null,
+      dauer: dauer,
+      uebungen: e.u.map(function (u) {
+        if (!u || typeof u !== "object") throw planFehler("Der Link enthält eine ungültige Übung");
+        var eintrag = {};
+        if (typeof u.i === "string" && UEBUNGS_ID.test(u.i)) eintrag.id = u.i;
+        else if (typeof u.f === "string" && u.f.trim()) eintrag.name = textFeld(u.f, 120);
+        else throw planFehler("Der Link enthält eine ungültige Übung");
+        eintrag.dosierung = textFeld(u.o, PLAN_GRENZEN.text);
+        eintrag.hinweis = textFeld(u.h, PLAN_GRENZEN.text);
+        return eintrag;
+      })
+    };
+  });
+  return {
+    id: id, revision: revision, titel: textFeld(k.t, PLAN_GRENZEN.titel),
+    anrede: k.a === "s" ? "sie" : "du", start: k.s, wochen: wochen,
+    notiz: textFeld(k.n, PLAN_GRENZEN.text), einheiten: einheiten
+  };
+}
+
+/* ---------- Texte zum Zeitplan ---------- */
+
+var TAG_KURZ = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
+var MONAT_KURZ = ["Jan.", "Feb.", "März", "Apr.", "Mai", "Juni", "Juli", "Aug.", "Sept.", "Okt.", "Nov.", "Dez."];
+
+function planEnde(plan) { return datumPlusTage(plan.start, plan.wochen * 7 - 1); }
+
+function datumText(iso, mitJahr) {
+  var t = iso.split("-");
+  return parseInt(t[2], 10) + ". " + MONAT_KURZ[parseInt(t[1], 10) - 1] + (mitJahr ? " " + t[0] : "");
+}
+
+function zeitraumText(plan) {
+  var ende = planEnde(plan);
+  var gleichesJahr = ende.slice(0, 4) === plan.start.slice(0, 4);
+  return datumText(plan.start, !gleichesJahr) + " – " + datumText(ende, true);
+}
+
+function tageText(tage) {
+  if (tage.length === 7) return "täglich";
+  if (tage.join() === "0,1,2,3,4") return "Mo–Fr";
+  return tage.map(function (t) { return TAG_KURZ[t]; }).join(", ");
+}
+
+function aufzaehlung(teile) {
+  return teile.length < 2 ? teile.join("") : teile.slice(0, -1).join(", ") + " und " + teile[teile.length - 1];
+}
+
+function zeitenText(e) {
+  if (e.ganztaegig) return "ganztägig, Erinnerung " + e.erinnerung + " Uhr";
+  return aufzaehlung(e.zeiten) + " Uhr";
+}
+
+/* ---------- Plan -> Kalenderserien ---------- */
+
+// katalog(id) liefert {name, dosis, kurz, hinweis} oder null. dosis = Zettel-Vorbelegung
+// (Dosierung · Tempo · Frequenz), kurz = nur die Dosierung fuer die Kalendernotiz.
+function uebungAnzeige(u, katalog) {
+  if (!u.id) return { name: u.name, dosis: u.dosierung, kurz: u.dosierung, hinweis: u.hinweis, fehlt: false };
+  var k = katalog(u.id);
+  if (!k) return { name: "Übung " + u.id, dosis: u.dosierung, kurz: u.dosierung, hinweis: u.hinweis, fehlt: true };
+  return { name: k.name, dosis: u.dosierung || k.dosis, kurz: u.dosierung || k.kurz || k.dosis,
+           hinweis: u.hinweis || k.hinweis, fehlt: false, katalog: k };
+}
+
+function planSerien(plan, katalog, link) {
+  var serien = [];
+  var titel = plan.titel || "Übungsprogramm";
+  plan.einheiten.forEach(function (e, k) {
+    var zusatz = plan.einheiten.length > 1 ? " – " + (e.name || "Einheit " + (k + 1)) : "";
+    var zeilen = e.uebungen.map(function (u, i) {
+      var a = uebungAnzeige(u, katalog);
+      return (i + 1) + ". " + a.name + (a.kurz ? " – " + a.kurz : "");
+    });
+    var beschreibung = zeilen.join("\n") + "\n\nAnleitung und alle Details:\n" + link + "\n\nO.G. Physiotherapie";
+    var basis = {
+      sequenz: plan.revision - 1, titel: titel + zusatz, beschreibung: beschreibung, url: link,
+      startDatum: plan.start, dauerMin: e.dauer, tage: e.tage, anzahl: e.tage.length * plan.wochen
+    };
+    var zeiten = e.ganztaegig ? [null] : e.zeiten;
+    zeiten.forEach(function (z, j) {
+      var s = {};
+      for (var key in basis) s[key] = basis[key];
+      s.uid = plan.id + "-" + k + "-" + (z ? z.replace(":", "") : "g") + "@og-physiotherapie.de";
+      s.uhrzeit = z;
+      s.erinnerung = z ? 0 : e.erinnerung;
+      s.einheit = k;
+      s.zeitText = tageText(e.tage) + " · " + (z ? z + " Uhr" : "ganztägig");
+      serien.push(s);
+    });
+  });
+  return serien;
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    planKodieren: planKodieren, planDekodieren: planDekodieren, planSerien: planSerien,
+    neuePlanId: neuePlanId, zeitraumText: zeitraumText, tageText: tageText, zeitenText: zeitenText
+  };
+}
+
+</script>
+<script>
+"use strict";
+const DATEN = JSON.parse(document.getElementById("daten").textContent);
+const KAT = {};
+DATEN.uebungen.forEach(u => { KAT[u.id] = u; });
+const katalog = id => KAT[id] || null;
+const $ = s => document.querySelector(s);
+const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g,
+  c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const IOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+  (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+const ANDROID = /Android/i.test(navigator.userAgent);
+const LOKAL = location.protocol === "file:";
+
+let SERIEN = [];
+
+// Erfundenes Beispiel zum Ausprobieren: Adresse mit #beispiel öffnen
+function beispielPlan() {
+  const heute = new Date();
+  const start = heute.getFullYear() + "-" + String(heute.getMonth() + 1).padStart(2, "0") + "-" +
+    String(heute.getDate()).padStart(2, "0");
+  return {
+    id: "beispiel", revision: 1, titel: "Schulter (Beispiel)", anrede: "du", start: start, wochen: 6,
+    notiz: "Das ist ein erfundenes Beispiel zum Ausprobieren.",
+    einheiten: [
+      { name: "Isometrie", tage: [0, 1, 2, 3, 4, 5, 6], zeiten: ["07:30", "18:00"], ganztaegig: false, dauer: 15,
+        uebungen: [{ id: "SCH-ABD-KRA-SEH-01" }, { id: "SCH-AR0-KRA-SEH-02" }, { id: "SCH-FLX-KRA-SEH-02" }] },
+      { name: "Schulterblatt", tage: [0, 2, 4], zeiten: ["18:30"], ganztaegig: false, dauer: 20,
+        uebungen: [{ id: "SCG-RTR-KRA-MUS-01" }, { id: "SCG-PTR-KRA-MUS-01", dosierung: "2S x 12W je Seite" }] }
+    ]
+  };
+}
+
+function texte(sie) {
+  return sie ? {
+    programm: "Ihr Übungsprogramm",
+    kalenderInfo: "Tragen Sie sich die Übungszeiten in den Kalender Ihres Handys ein. Jeder Termin enthält einen Link zurück zu dieser Seite.",
+    hilfeIos: "Das iPhone fragt danach noch einmal nach – bestätigen Sie mit „Hinzufügen“ bzw. „Alle hinzufügen“.",
+    hilfeIosNotfall: "Passiert nichts? Dann ",
+    hilfeIosLink: "tippen Sie hier",
+    hilfeIosSafari: ". Bei Problemen öffnen Sie den Link bitte in Safari.",
+    hilfeAndroid: "Bei Samsung- und anderen Kalender-Apps genügt der grüne Knopf. Mit dem Google Kalender geht es über die Knöpfe darunter.",
+    hilfeSonst: "Die Kalenderdatei wird heruntergeladen. Öffnen Sie sie, dann übernimmt Ihr Kalender die Termine.",
+    googleFrage: "Sie nutzen den Google Kalender?",
+    googleText: "Dann tragen Sie die Termine hier einzeln ein – ein Knopf pro Terminserie:",
+    privat: "Ihr Programm steckt nur in diesem Link. Nichts wird gespeichert oder an uns geschickt. Bekommen Sie später einen neuen Link, löschen Sie bitte vorher die alten Übungstermine.",
+    sicherheit: "Üben Sie immer mit einer festen Haltemöglichkeit in Reichweite (Küchenzeile, schwerer Stuhl). Bei Schwindel, Brustschmerz oder Atemnot sofort aufhören und hinsetzen.",
+    schmerz: "reduzieren Sie Belastung oder Wiederholungen und melden Sie sich"
+  } : {
+    programm: "Dein Übungsprogramm",
+    kalenderInfo: "Trag dir die Übungszeiten in den Kalender deines Handys ein. Jeder Termin enthält einen Link zurück zu dieser Seite.",
+    hilfeIos: "Das iPhone fragt danach noch einmal nach – bestätige mit „Hinzufügen“ bzw. „Alle hinzufügen“.",
+    hilfeIosNotfall: "Passiert nichts? Dann ",
+    hilfeIosLink: "tippe hier",
+    hilfeIosSafari: ". Bei Problemen öffne den Link bitte in Safari.",
+    hilfeAndroid: "Bei Samsung- und anderen Kalender-Apps genügt der grüne Knopf. Mit dem Google Kalender geht es über die Knöpfe darunter.",
+    hilfeSonst: "Die Kalenderdatei wird heruntergeladen. Öffne sie, dann übernimmt dein Kalender die Termine.",
+    googleFrage: "Du nutzt den Google Kalender?",
+    googleText: "Dann trag die Termine hier einzeln ein – ein Knopf pro Terminserie:",
+    privat: "Dein Programm steckt nur in diesem Link. Nichts wird gespeichert oder an uns geschickt. Bekommst du später einen neuen Link, lösche bitte vorher die alten Übungstermine.",
+    sicherheit: "Übe immer mit einer festen Haltemöglichkeit in Reichweite (Küchenzeile, schwerer Stuhl). Bei Schwindel, Brustschmerz oder Atemnot sofort aufhören und hinsetzen.",
+    schmerz: "reduziere Belastung oder Wiederholungen und melde dich"
+  };
+}
+
+function planLink() {
+  return location.protocol + "//" + location.host + location.pathname + location.hash;
+}
+
+function zeige() {
+  if (location.hash === "#beispiel") { location.replace("#" + planKodieren(beispielPlan())); return; }
+  let plan;
+  try { plan = planDekodieren(location.hash); }
+  catch (e) {
+    if (!e.planFehler) console.error(e);
+    zeigeFehler(e.planFehler ? e.message : "Das Programm konnte nicht angezeigt werden");
+    return;
+  }
+  zeigePlan(plan);
+}
+
+function zeigeFehler(meldung) {
+  document.title = "Übungsprogramm – O.G. Physiotherapie";
+  $("#ueberschrift").textContent = "Übungsprogramm";
+  $("#plantitel").hidden = $("#zeitraum").hidden = true;
+  $("#inhalt").innerHTML = `
+    <section class="karte">
+      <h2>Kein Programm gefunden</h2>
+      <p><b>${esc(meldung)}.</b></p>
+      <p>Bitte den Link aus der Nachricht noch einmal vollständig öffnen – oder bei O.G. Physiotherapie nachfragen.</p>
+      ${LOKAL ? '<a class="knopf zweit" href="#beispiel">Beispiel ansehen</a>' : ""}
+    </section>`;
+}
+
+function uebungKarte(u, nr) {
+  const a = uebungAnzeige(u, katalog);
+  const k = a.katalog;
+  const bilder = k && k.bilder && k.bilder.length
+    ? `<div class="bilder">${k.bilder.map((b, i) =>
+        `<img src="${esc(b)}" alt="${esc(a.name)}, Bild ${i + 1}" loading="lazy">`).join("")}</div>` : "";
+  const video = k && k.video ? `<a class="video nur-bildschirm" href="${esc(k.video)}" target="_blank" rel="noopener">Video ansehen</a>` : "";
+  return `<article class="ue">
+    <div class="ue-kopf"><div class="ue-nr">${nr}</div><div style="flex:1;min-width:0">
+      <h3>${esc(a.name)}</h3>
+      ${bilder}
+      ${a.fehlt ? `<p class="anleitung fehlt">Diese Übung ist nicht mehr im Katalog. Bitte bei O.G. Physiotherapie nachfragen.</p>` : ""}
+      ${k ? `<p class="anleitung">${esc(k.instruktion)}</p>` : ""}
+      ${a.dosis ? `<div class="dosis"><b>Dosierung</b>${esc(a.dosis)}</div>` : ""}
+      ${a.hinweis ? `<p class="vermeiden"><b>Bitte vermeiden:</b> ${esc(a.hinweis)}</p>` : ""}
+      ${video}
+    </div></div>
+  </article>`;
+}
+
+function zeigePlan(plan) {
+  const sie = plan.anrede === "sie";
+  const T = texte(sie);
+  const link = planLink();
+  SERIEN = planSerien(plan, katalog, link);
+  const mehrere = plan.einheiten.length > 1;
+  const einheitName = (e, i) => e.name || (mehrere ? "Einheit " + (i + 1) : "Übungen");
+
+  document.title = T.programm + (plan.titel ? " – " + plan.titel : "") + " – O.G. Physiotherapie";
+  $("#ueberschrift").textContent = T.programm;
+  $("#plantitel").textContent = plan.titel;
+  $("#plantitel").hidden = !plan.titel;
+  $("#zeitraum").textContent = zeitraumText(plan) + " · " + plan.wochen + (plan.wochen === 1 ? " Woche" : " Wochen");
+  $("#zeitraum").hidden = false;
+
+  const zeitplan = plan.einheiten.map((e, i) => `<li><span class="marker"></span><div>
+      <b>${esc(einheitName(e, i))}:</b> ${esc(tageText(e.tage))} · ${esc(zeitenText(e))}
+      ${e.ganztaegig ? "" : `<span class="leise">· ca. ${e.dauer} Min.</span>`}</div></li>`).join("");
+
+  const google = SERIEN.map((s, i) => `<a class="knopf zweit" href="${esc(googleKalenderLink(s))}"
+      target="_blank" rel="noopener">${SERIEN.length > 1 ? "Termin " + (i + 1) + ": " : ""}${esc(
+      einheitName(plan.einheiten[s.einheit], s.einheit))} · ${esc(s.zeitText)}</a>`).join("");
+
+  let hilfe;
+  if (IOS) hilfe = `${esc(T.hilfeIos)} ${esc(T.hilfeIosNotfall)}<a href="#" id="b-ics-alt">${esc(T.hilfeIosLink)}</a>${esc(T.hilfeIosSafari)}`;
+  else if (ANDROID) hilfe = esc(T.hilfeAndroid);
+  else hilfe = esc(T.hilfeSonst);
+
+  const adl = plan.einheiten.some(e => e.uebungen.some(u => u.id && u.id.indexOf("ADL-") === 0));
+
+  const bloecke = plan.einheiten.map((e, i) => `
+    <section>
+      <div class="einheit-kopf">
+        ${mehrere ? `<h2>Einheit ${i + 1}</h2>` : ""}
+        <p class="titel">${esc(einheitName(e, i))}</p>
+        <p class="zeit">${esc(tageText(e.tage))} · ${esc(zeitenText(e))}</p>
+      </div>
+      ${e.uebungen.map((u, n) => uebungKarte(u, n + 1)).join("")}
+    </section>`).join("");
+
+  const rechtlich = [
+    DATEN.impressum ? `<a href="${esc(DATEN.impressum)}" target="_blank" rel="noopener">Impressum</a>` : "",
+    DATEN.datenschutz ? `<a href="${esc(DATEN.datenschutz)}" target="_blank" rel="noopener">Datenschutz</a>` : ""
+  ].filter(Boolean).join(" · ");
+
+  $("#inhalt").innerHTML = `
+    <section class="karte">
+      <h2>Wann?</h2>
+      <ul class="zeitplan">${zeitplan}</ul>
+      <div class="nur-bildschirm">
+        <p class="hilfe" style="margin:0 0 12px">${esc(T.kalenderInfo)}</p>
+        <button class="knopf" id="b-ics" type="button">In meinen Kalender eintragen</button>
+        <p class="hilfe">${hilfe}</p>
+        <details class="google" ${ANDROID ? "open" : ""}>
+          <summary>${esc(T.googleFrage)}</summary>
+          <p>${esc(T.googleText)}</p>
+          ${google}
+        </details>
+        <p class="privat">${esc(T.privat)}</p>
+      </div>
+    </section>
+    ${plan.notiz ? `<section class="karte notiz"><h2>Hinweis</h2><p>${esc(plan.notiz)}</p></section>` : ""}
+    ${bloecke}
+    <footer class="fuss">
+      ${adl ? `<p><b>Sicherheit:</b> ${esc(T.sicherheit)}</p>` : ""}
+      <p><b>Schmerzregel:</b> Beschwerden während der Übung bis etwa 3–5 von 10 sind in Ordnung,
+        solange sie bis zum nächsten Morgen wieder auf dem Ausgangsniveau sind. Halten sie länger
+        als 24 Stunden an oder nehmen sie zu, ${esc(T.schmerz)}.</p>
+      <p><b>Bei Fragen:</b> lieber einmal nachfragen als falsch üben.</p>
+      <button class="knopf zweit nur-bildschirm" id="b-druck" type="button">Drucken oder als PDF speichern</button>
+      <p class="rechtlich">Zusammengestellt von O.G. Physiotherapie – mobile Physiotherapie.${rechtlich ? "<br>" + rechtlich : ""}</p>
+    </footer>`;
+
+  $("#b-ics").addEventListener("click", kalenderDatei);
+  $("#b-druck").addEventListener("click", () => window.print());
+  const alt = $("#b-ics-alt");
+  if (alt) alt.addEventListener("click", ev => { ev.preventDefault(); kalenderDatenLink(); });
+}
+
+// Standardweg: Kalenderdatei herunterladen bzw. öffnen
+function kalenderDatei() {
+  const erg = buildPlanICS(SERIEN);
+  const url = URL.createObjectURL(new Blob([erg.ics], { type: "text/calendar;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url; a.download = erg.dateiname;
+  document.body.appendChild(a); a.click();
+  setTimeout(() => { URL.revokeObjectURL(url); a.remove(); }, 4000);
+}
+
+// Zweiter Weg fürs iPhone: Safari zeigt Kalenderdaten direkt zum Hinzufügen an
+function kalenderDatenLink() {
+  location.href = "data:text/calendar;charset=utf-8," + encodeURIComponent(buildPlanICS(SERIEN).ics);
+}
+
+window.addEventListener("hashchange", zeige);
+zeige();
+</script>
+</body>
+</html>
